@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Full To Full Generator PKS PT BIM</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f4f7;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 420px;
+        margin: auto;
+        background: #ffffff;
+        padding: 22px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Header Biru Putih */
+    h2 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #0b2f6b, #1e56a0);
+        color: #ffffff;
+        padding: 14px 10px;
+        border-radius: 8px;
+        font-size: 20px;
+        box-shadow: 0 2px 6px rgba(11, 47, 107, 0.2);
+    }
+
+    label {
+        font-weight: bold;
+        margin-top: 12px;
+        display: block;
+    }
+
+    input, select, button {
+        width: 100%;
+        padding: 9px;
+        margin-top: 6px;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+    button {
+        margin-top: 18px;
+        background: #0b2f6b;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background: #08305f;
+    }
+
+    .result {
+        margin-top: 22px;
+        padding: 16px;
+        background: #eef3f9;
+        border-radius: 10px;
+        display: none;
+    }
+
+    .status-aman {
+        color: #2e7d32;
+        font-weight: bold;
+    }
+
+    .status-deffect {
+        color: #d32f2f;
+        font-weight: bold;
+    }
+
+    .copyright {
+        margin-top: 25px;
+        text-align: center;
+        font-size: 12px;
+        color: #777;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Full To Full Generator PKS PT. BIM</h2>
+
+    <label>Tanggal</label>
+    <input type="date" id="tanggal">
+
+    <label>Kwh Awal</label>
+    <input type="number" id="kwhAwal" step="0.01">
+
+    <label>Kwh Akhir</label>
+    <input type="number" id="kwhAkhir" step="0.01">
+
+    <label>Pengisian Solar (Liter)</label>
+    <input type="number" id="solar" step="0.01">
+
+    <label>Pilih Genset</label>
+    <select id="ct">
+        <option value="100"
+                data-name="Genset No.1"
+                data-cttext="500/5"
+                data-norma="1.10">
+            Genset No.1 (500/5)
+        </option>
+        <option value="160"
+                data-name="Genset No.2"
+                data-cttext="800/5"
+                data-norma="0.89">
+            Genset No.2 (800/5)
+        </option>
+        <option value="160"
+                data-name="Genset No.3"
+                data-cttext="800/5"
+                data-norma="0.00">
+            Genset No.3 (800/5)
+        </option>
+        <option value="200"
+                data-name="Genset No.4"
+                data-cttext="1000/5"
+                data-norma="0.31">
+            Genset No.4 (1000/5)
+        </option>
+    </select>
+
+    <button onclick="hitung()">Generit</button>
+
+    <div class="result" id="hasil"></div>
+
+    <div class="copyright">
+        © Supriyanto
+    </div>
+</div>
+
+<script>
+function hitung() {
+    const tanggal = document.getElementById("tanggal").value;
+    const kwhAwal = parseFloat(document.getElementById("kwhAwal").value);
+    const kwhAkhir = parseFloat(document.getElementById("kwhAkhir").value);
+    const solar = parseFloat(document.getElementById("solar").value);
+
+    const select = document.getElementById("ct");
+    const ct = parseFloat(select.value);
+    const genset = select.options[select.selectedIndex].dataset.name;
+    const ctText = select.options[select.selectedIndex].dataset.cttext;
+    const normaVal = parseFloat(select.options[select.selectedIndex].dataset.norma);
+
+    if (!tanggal || isNaN(kwhAwal) || isNaN(kwhAkhir) || isNaN(solar)) {
+        alert("Semua data wajib diisi!");
+        return;
+    }
+
+    if (kwhAkhir <= kwhAwal) {
+        alert("Kwh Akhir harus lebih besar dari Kwh Awal!");
+        return;
+    }
+
+    const kwhTerpakai = kwhAkhir - kwhAwal;
+    const literPerKwh = solar / (kwhTerpakai * ct);
+
+    // Batas toleransi over 10% dari norma
+    const batasMaksimal = normaVal * 1.10;
+
+    let statusText = "";
+    if (literPerKwh <= batasMaksimal) {
+        statusText = `<span class="status-aman">Status : AMAN</span>`;
+    } else {
+        statusText = `<span class="status-deffect">Status : DEFFECT</span>`;
+    }
+
+    const normaDisplay = normaVal.toString().replace('.', ',');
+
+    document.getElementById("hasil").style.display = "block";
+    document.getElementById("hasil").innerHTML = `
+        <strong>PKS PT.BIM (Full To Full Generator)</strong><br>
+        Tanggal : ${tanggal}<br><br>
+
+        <strong>${genset}</strong><br>
+        Kwh terpakai : ${kwhTerpakai.toFixed(2)} x (${ctText})<br>
+        Ltr/Kwh : ${literPerKwh.toFixed(2)}<br>
+        Norma : ${normaDisplay} ltr/Kwh<br>
+        ${statusText}
+    `;
+}
+</script>
+
+</body>
+</html>
